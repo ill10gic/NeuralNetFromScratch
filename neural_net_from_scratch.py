@@ -46,8 +46,8 @@ def train_neural_network(x_train, y_train, weights, bias, learning_rate, num_of_
         weights = weights - np.dot(x_train_T, backprop_output_prod) * learning_rate
         loss = errors.sum()
         print(loss)
-    for i in backprop_output_prod:
-        bias = bias - i * learning_rate
+        for i in backprop_output_prod:
+            bias = bias - i * learning_rate
     return weights, bias
 
 
