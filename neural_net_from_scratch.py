@@ -6,7 +6,7 @@ import mnist
 # hyper parameters
 output_size = 10
 num_of_epochs = 1000
-learning_rate = 0.00005
+learning_rate = 0.000005
 
 # load data; x = features and y = labels/classifications
 x_train, y_train = mnist.train_images(), mnist.train_labels()
@@ -29,34 +29,49 @@ def sigmoid_derivative(neuron_out):
 
 
 # define the train function
-def train_neural_network(x_train, y_train, weights, bias, learning_rate, num_of_epochs):
+def train_neural_network(x_train, y_train, layers, biases, learning_rate, num_of_epochs):
     for epoch in range(num_of_epochs):
-        # forward pass - using numpy dot product
-        net_output = np.dot(x_train, weights) + bias
-        # activation (non linearity)
-        logit = sigmoid(net_output)
+        logit_outs = []
+        input = x_train
+        for idx, layer in enumerate(layers):
+            # forward pass - using numpy dot product
+            net_output = np.dot(input, layers[idx]) + biases[idx]
+            # activation (non linearity)
+            current_logit_out = sigmoid(net_output)
+            # save the layer's output for backpropagation
+            logit_outs.append(current_logit_out)
+            input = current_logit_out
+
         # calculate error
-        errors = logit - y_train
-        # backwards pass
-        cost_function = errors
-        backprop_output = sigmoid_derivative(logit)
-        backprop_output_prod = cost_function * backprop_output
-        x_train_T = x_train.T
-        # update weights
-        weights = weights - np.dot(x_train_T, backprop_output_prod) * learning_rate
+        errors = current_logit_out - y_train
+        loss = errors
+        # backwards pass - go through layers in reverse, backpropagate error
+        for idx in range(len(layers) - 1, -1, -1):
+
+            backprop_output = sigmoid_derivative(logit_outs[idx])
+            backprop_output_prod = loss * backprop_output
+            loss = np.dot(backprop_output_prod, layers[idx].T)
+            if idx > 0:
+                logit_out_t = logit_outs[idx - 1].T
+            else:
+                logit_out_t = x_train.T
+            layers[idx] = layers[idx] - np.dot(logit_out_t, backprop_output_prod) * learning_rate
+            # TODO - update biases
+            # for bias_idx, i in enumerate(backprop_output_prod):
+            #     biases[bias_idx] = biases[bias_idx] - i * learning_rate
         loss = errors.sum()
         print(loss)
-        for i in backprop_output_prod:
-            bias = bias - i * learning_rate
-    return weights, bias
+    return layers, biases
 
 
 # initialize weights and biases
 np.random.seed(42)
-weights = np.random.rand(784, 10)
-bias = np.random.rand(10)
+layer1 = np.random.rand(784, 60)
+layer2 = np.random.rand(60, 10)
+bias1 = np.random.rand(60)
+bias2 = np.random.rand(10)
 
 # train the model
-weight_out, bias_out = train_neural_network(x_train, y_train, weights, bias, learning_rate, num_of_epochs)
+weight_out, bias_out = train_neural_network(x_train, y_train, [layer1, layer2], [bias1, bias2], learning_rate, num_of_epochs)
 
 # make predictions using model
