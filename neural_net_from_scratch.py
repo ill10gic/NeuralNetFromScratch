@@ -5,7 +5,7 @@ import mnist
 
 # hyper parameters
 output_size = 10
-num_of_epochs = 1000
+num_of_epochs = 100
 learning_rate = 0.000005
 
 # load data; x = features and y = labels/classifications
@@ -50,6 +50,8 @@ def train_neural_network(x_train, y_train, layers, biases, learning_rate, num_of
 
             backprop_output = sigmoid_derivative(logit_outs[idx])
             backprop_output_prod = loss * backprop_output
+            d_loss_bias = np.zeros_like(loss)
+            d_loss_bias[np.arange(len(loss)), loss.argmax(1)] = 1
             loss = np.dot(backprop_output_prod, layers[idx].T)
             if idx > 0:
                 logit_out_t = logit_outs[idx - 1].T
@@ -58,11 +60,22 @@ def train_neural_network(x_train, y_train, layers, biases, learning_rate, num_of
             layers[idx] = layers[idx] - np.dot(logit_out_t, backprop_output_prod) * learning_rate
             # TODO - update biases
             # for bias_idx, i in enumerate(backprop_output_prod):
-            #     biases[bias_idx] = biases[bias_idx] - i * learning_rate
+            d_loss_bias = np.sum(d_loss_bias, axis=0)
+            biases[idx] = biases[idx] - d_loss_bias * learning_rate
         loss = errors.sum()
         print(loss)
     return layers, biases
 
+# def accuracy(x_test, y_test, layers, biases, learning_rate, num_of_epochs):
+#     input = x_test
+#     for idx, layer in enumerate(layers):
+#         # forward pass - using numpy dot product
+#         net_output = np.dot(input, layers[idx]) + biases[idx]
+#         # activation (non linearity)
+#         current_logit_out = sigmoid(net_output)
+#         input = current_logit_out
+#
+#     # if np.argmax(current_logit_out) == np.argmax(y_test)
 
 # initialize weights and biases
 np.random.seed(42)
