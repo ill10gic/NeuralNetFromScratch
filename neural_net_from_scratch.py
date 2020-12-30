@@ -45,23 +45,19 @@ def train_neural_network(x_train, y_train, layers, biases, learning_rate, num_of
         # calculate error
         errors = current_logit_out - y_train
         loss = errors
+
         # backwards pass - go through layers in reverse, backpropagate error
         for idx in range(len(layers) - 1, -1, -1):
-
             backprop_output = sigmoid_derivative(logit_outs[idx])
             backprop_output_prod = loss * backprop_output
-            d_loss_bias = np.zeros_like(loss)
-            d_loss_bias[np.arange(len(loss)), loss.argmax(1)] = 1
             loss = np.dot(backprop_output_prod, layers[idx].T)
             if idx > 0:
                 logit_out_t = logit_outs[idx - 1].T
             else:
                 logit_out_t = x_train.T
             layers[idx] = layers[idx] - np.dot(logit_out_t, backprop_output_prod) * learning_rate
-            # TODO - update biases
-            # for bias_idx, i in enumerate(backprop_output_prod):
-            d_loss_bias = np.sum(d_loss_bias, axis=0)
-            biases[idx] = biases[idx] - d_loss_bias * learning_rate
+            for i in backprop_output_prod:
+                biases[idx] = biases[idx] - i * learning_rate
         loss = errors.sum()
         print(loss)
     return layers, biases
