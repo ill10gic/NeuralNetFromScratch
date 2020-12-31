@@ -5,7 +5,7 @@ import mnist
 
 # hyper parameters
 output_size = 10
-num_of_epochs = 100
+num_of_epochs = 25
 learning_rate = 0.000005
 
 # load data; x = features and y = labels/classifications
@@ -30,6 +30,9 @@ def sigmoid_derivative(neuron_out):
 
 # define the train function
 def train_neural_network(x_train, y_train, layers, biases, learning_rate, num_of_epochs):
+    # shuffler = np.random.permutation(len(x_train))
+    # x_train = x_train[shuffler]
+    # y_train = y_train[shuffler]
     for epoch in range(num_of_epochs):
         logit_outs = []
         input = x_train
@@ -58,23 +61,38 @@ def train_neural_network(x_train, y_train, layers, biases, learning_rate, num_of
             layers[idx] = layers[idx] - np.dot(logit_out_t, backprop_output_prod) * learning_rate
             for i in backprop_output_prod:
                 biases[idx] = biases[idx] - i * learning_rate
-        loss = errors.sum()
-        print(loss)
+        print(errors.sum())
+        # accuracy(x_train, y_train, layers, biases)
     return layers, biases
 
-# def accuracy(x_test, y_test, layers, biases, learning_rate, num_of_epochs):
-#     input = x_test
-#     for idx, layer in enumerate(layers):
-#         # forward pass - using numpy dot product
-#         net_output = np.dot(input, layers[idx]) + biases[idx]
-#         # activation (non linearity)
-#         current_logit_out = sigmoid(net_output)
-#         input = current_logit_out
-#
-#     # if np.argmax(current_logit_out) == np.argmax(y_test)
+def accuracy(x_test, y_test, layers, biases):
+    input = x_test
+    for idx, layer in enumerate(layers):
+        # forward pass - using numpy dot product
+        net_output = np.dot(input, layers[idx]) + biases[idx]
+        # activation (non linearity)
+        current_logit_out = sigmoid(net_output)
+
+        input = current_logit_out
+
+        # calculate error
+        #errors = current_logit_out - y_test
+
+    num_correct = 0
+    for idx, output in enumerate(current_logit_out):
+        # print(output.argmax())
+        # print(y_test[idx].argmax())
+        if (output.argmax() == y_test[idx].argmax()):
+            num_correct += 1
+
+    print('num_correct: {}'.format(num_correct))
+    acc = num_correct / len(y_test)
+    print('Accuracy: {acc:.2%}'.format(acc=acc))
+    return acc
+
 
 # initialize weights and biases
-np.random.seed(42)
+#np.random.seed(42)
 layer1 = np.random.rand(784, 60)
 layer2 = np.random.rand(60, 10)
 bias1 = np.random.rand(60)
@@ -84,3 +102,5 @@ bias2 = np.random.rand(10)
 weight_out, bias_out = train_neural_network(x_train, y_train, [layer1, layer2], [bias1, bias2], learning_rate, num_of_epochs)
 
 # make predictions using model
+acc = accuracy(x_test, y_test, weight_out, bias_out)
+
